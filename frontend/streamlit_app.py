@@ -1,10 +1,15 @@
+import sys
+import os
+
+# Add project root to sys.path for Streamlit Cloud module imports
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 import streamlit as st
 import pandas as pd
 import json
-import os
 import shutil
 
-# Direct Service Imports to prevent HTTP ConnectionRefusedError on cloud hosting
+# Direct Service Imports
 from backend.app.database import SessionLocal, init_db
 from backend.app.models.database_models import User, Document, Conversation, Message
 from backend.app.services.document_service import DocumentService
@@ -210,7 +215,6 @@ if navigation == "💬 Chat":
         with st.spinner("Searching FAISS index and generating response..."):
             db = get_db()
             try:
-                # Create conversation if new
                 if not st.session_state.current_chat_id:
                     new_conv = MemoryService.create_conversation(db, title=user_query[:30])
                     st.session_state.current_chat_id = new_conv.id
@@ -257,7 +261,6 @@ elif navigation == "📁 Documents & Analytics":
     st.markdown('<div class="main-header">📁 Document Management & Analytics</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Upload documents and view Pandas-powered token/chunk analytics.</div>', unsafe_allow_html=True)
 
-    # Document Upload Section
     st.subheader("📤 Upload Document")
     uploaded_file = st.file_uploader(
         "Choose a file (PDF, DOCX, TXT, MD)",
@@ -329,7 +332,6 @@ elif navigation == "📁 Documents & Analytics":
 
     st.markdown("---")
 
-    # Document Statistics Dashboard (Pandas metrics)
     st.subheader("📊 Document & Token Analytics (Pandas Summary)")
     docs = fetch_documents()
     doc_dicts = [
@@ -356,7 +358,6 @@ elif navigation == "📁 Documents & Analytics":
     else:
         st.info("No documents uploaded yet. Upload a document to see token analytics.")
 
-    # Uploaded Documents Table
     st.subheader("📄 Uploaded Documents")
     if docs:
         df_docs = pd.DataFrame(doc_dicts)
