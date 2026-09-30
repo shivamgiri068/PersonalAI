@@ -7,7 +7,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 import streamlit as st
 import pandas as pd
 import json
-import shutil
 
 # Direct Service Imports
 from backend.app.database import SessionLocal, init_db
@@ -83,11 +82,11 @@ def fetch_user_profile():
         if not user:
             user = User(
                 id=1,
-                name="Shivam",
-                education="B.Tech CSE",
-                skills="Python, SQL, Generative AI, React, FastAPI",
-                interests="RAG, LLMs, Backend Engineering",
-                response_style="Concise, technical, and structured"
+                name="SHIVAM GIRI",
+                education="B.Tech - Computer Science & Engineering, Pranveer Singh Institute of Technology, Kanpur (2022 - 2026, CGPA: 7.2)",
+                skills="Java, JavaScript, SQL, Node.js, Express.js, HTML, CSS, MySQL, MongoDB, Git, GitHub, Linux, JWT, WebSockets, REST APIs, Python, FastAPI, LangChain, FAISS, Generative AI, RAG",
+                interests="Generative AI, Full Stack Development, Backend Engineering, Data Structures & Algorithms, Vector Databases",
+                response_style="Concise, technical, and structured with clear code examples"
             )
             db.add(user)
             db.commit()
@@ -128,8 +127,9 @@ navigation = st.sidebar.radio(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("**Target Role**: Fresher GenAI Engineer")
-st.sidebar.markdown("**Tech Stack**: Python | FastAPI | LangChain | FAISS | OpenAI | SQLite | Streamlit | Pandas | NumPy")
+st.sidebar.markdown("**Candidate**: SHIVAM GIRI")
+st.sidebar.markdown("**Education**: B.Tech CSE (2026)")
+st.sidebar.markdown("**Tech Stack**: Java | Python | JavaScript | Node.js | FastAPI | LangChain | FAISS | SQL | React")
 
 # ----------------------------------------------------
 # 1. 💬 CHAT TAB
@@ -143,6 +143,8 @@ if navigation == "💬 Chat":
         st.session_state.current_chat_id = None
     if "chat_messages" not in st.session_state:
         st.session_state.chat_messages = []
+    if "conv_widget_counter" not in st.session_state:
+        st.session_state.conv_widget_counter = 0
 
     # Chat controls
     col_conv, col_new = st.columns([4, 1])
@@ -156,7 +158,7 @@ if navigation == "💬 Chat":
         selected_label = st.selectbox(
             "Select Conversation Session",
             list(conv_options.keys()),
-            index=0
+            key=f"conv_select_{st.session_state.conv_widget_counter}"
         )
         selected_id = conv_options[selected_label]
 
@@ -191,6 +193,7 @@ if navigation == "💬 Chat":
         if st.button("➕ New Chat", use_container_width=True):
             st.session_state.current_chat_id = None
             st.session_state.chat_messages = []
+            st.session_state.conv_widget_counter += 1
             st.rerun()
 
     use_rag_toggle = st.checkbox("🔍 Enable RAG Vector Retrieval (FAISS)", value=True)
@@ -208,7 +211,7 @@ if navigation == "💬 Chat":
                         st.caption(src['content'])
 
     # Chat Input
-    if user_query := st.chat_input("Ask a question about your documents (e.g., 'What skills are in my resume?')..."):
+    if user_query := st.chat_input("Ask a question about your documents (e.g., 'What projects are in my resume?')..."):
         st.chat_message("user").write(user_query)
         st.session_state.chat_messages.append({"role": "user", "content": user_query, "sources": []})
 
@@ -412,9 +415,9 @@ elif navigation == "👤 Profile":
 
     with st.form("profile_form"):
         name = st.text_input("Name", value=profile_obj.name)
-        education = st.text_input("Education", value=profile_obj.education or "B.Tech CSE")
-        skills = st.text_area("Technical Skills", value=profile_obj.skills or "Python, SQL, Generative AI, React, FastAPI")
-        interests = st.text_area("Interests / Specialization", value=profile_obj.interests or "RAG, LLMs, Backend Engineering")
+        education = st.text_input("Education", value=profile_obj.education or "B.Tech - Computer Science & Engineering, PSIT Kanpur")
+        skills = st.text_area("Technical Skills", value=profile_obj.skills or "Java, JavaScript, SQL, Node.js, Express.js, MySQL, MongoDB, React, Python, FastAPI, LangChain, FAISS, RAG")
+        interests = st.text_area("Interests / Specialization", value=profile_obj.interests or "Generative AI, Full Stack Development, Backend Engineering, Vector Databases")
         response_style = st.selectbox(
             "Preferred AI Response Style",
             [
@@ -464,7 +467,7 @@ elif navigation == "📄 Resume Analyzer":
         else:
             st.warning("No uploaded documents found. Please upload a resume first or paste raw text below.")
     else:
-        raw_resume_text = st.text_area("Paste Resume Text Here", height=200, placeholder="Paste your resume content here...")
+        raw_resume_text = st.text_area("Paste Resume Text Here", height=220, placeholder="Paste your resume content here (e.g. SHIVAM GIRI, B.Tech CSE, Java, Node.js, TaskFlow, ChatSphere)...")
 
     custom_q = st.text_input("Custom Analysis Focus (Optional)", "Summarize key skills, education, and projects")
 
@@ -526,7 +529,7 @@ elif navigation == "🎯 Job Description Matcher":
     st.markdown('<div class="main-header">🎯 Job Description Matcher</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Compare your candidate profile/resume against target job descriptions.</div>', unsafe_allow_html=True)
 
-    jd_text = st.text_area("Paste Job Description (JD) Text Here", height=180, placeholder="We are looking for a Generative AI Engineer skilled in Python, FastAPI, LangChain, FAISS, SQL...")
+    jd_text = st.text_area("Paste Job Description (JD) Text Here", height=180, placeholder="We are looking for a Software Engineer / Generative AI Engineer skilled in Java, Python, Node.js, Express, MongoDB, FastAPI, SQL...")
 
     docs = fetch_documents()
     selected_doc_id = None
