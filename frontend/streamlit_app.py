@@ -143,8 +143,6 @@ if navigation == "💬 Chat":
         st.session_state.current_chat_id = None
     if "chat_messages" not in st.session_state:
         st.session_state.chat_messages = []
-    if "conv_selectbox" not in st.session_state:
-        st.session_state.conv_selectbox = "New Conversation"
 
     # Chat controls
     col_conv, col_new = st.columns([4, 1])
@@ -154,15 +152,18 @@ if navigation == "💬 Chat":
     for c in conversations:
         conv_options[f"{c.title} (ID: {c.id})"] = c.id
 
-    with col_conv:
-        # Validate that conv_selectbox exists in conv_options
-        if st.session_state.conv_selectbox not in conv_options:
-            st.session_state.conv_selectbox = "New Conversation"
+    conv_labels = list(conv_options.keys())
+    conv_values = list(conv_options.values())
 
+    current_idx = 0
+    if st.session_state.current_chat_id in conv_values:
+        current_idx = conv_values.index(st.session_state.current_chat_id)
+
+    with col_conv:
         selected_label = st.selectbox(
             "Select Conversation Session",
-            list(conv_options.keys()),
-            key="conv_selectbox"
+            conv_labels,
+            index=current_idx
         )
         selected_id = conv_options[selected_label]
 
@@ -197,7 +198,6 @@ if navigation == "💬 Chat":
         if st.button("➕ New Chat", use_container_width=True):
             st.session_state.current_chat_id = None
             st.session_state.chat_messages = []
-            st.session_state.conv_selectbox = "New Conversation"
             st.rerun()
 
     use_rag_toggle = st.checkbox("🔍 Enable RAG Vector Retrieval (FAISS)", value=True)
@@ -223,7 +223,6 @@ if navigation == "💬 Chat":
             if not st.session_state.current_chat_id:
                 new_conv = MemoryService.create_conversation(db, title=user_query[:30])
                 st.session_state.current_chat_id = new_conv.id
-                st.session_state.conv_selectbox = f"{new_conv.title} (ID: {new_conv.id})"
 
             conv_id = st.session_state.current_chat_id
             MemoryService.add_message(db, conversation_id=conv_id, role="user", content=user_query)
