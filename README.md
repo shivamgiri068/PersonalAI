@@ -9,7 +9,9 @@ PersonalAI enables users to upload custom documents (PDF, DOCX, TXT, Markdown) a
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.25+-red.svg)](https://streamlit.io/)
 [![FAISS](https://img.shields.io/badge/FAISS-CPU-orange.svg)](https://github.com/facebookresearch/faiss)
 [![OpenAI](https://img.shields.io/badge/OpenAI-API-brightgreen.svg)](https://platform.openai.com/)
-[![License](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+[![Live App](https://img.shields.io/badge/🚀_Live_Demo-PersonalAI-success.svg)](https://personalai-8vxmrnoau5p88tqrhtqzy4.streamlit.app)
+
+> 🌐 **Live Application**: [https://personalai-8vxmrnoau5p88tqrhtqzy4.streamlit.app](https://personalai-8vxmrnoau5p88tqrhtqzy4.streamlit.app)
 
 ---
 
