@@ -143,22 +143,26 @@ if navigation == "💬 Chat":
         st.session_state.current_chat_id = None
     if "chat_messages" not in st.session_state:
         st.session_state.chat_messages = []
-    if "conv_widget_counter" not in st.session_state:
-        st.session_state.conv_widget_counter = 0
+    if "conv_selectbox" not in st.session_state:
+        st.session_state.conv_selectbox = "New Conversation"
 
     # Chat controls
     col_conv, col_new = st.columns([4, 1])
     conversations = fetch_conversations()
     
+    conv_options = {"New Conversation": None}
+    for c in conversations:
+        conv_options[f"{c.title} (ID: {c.id})"] = c.id
+
     with col_conv:
-        conv_options = {"New Conversation": None}
-        for c in conversations:
-            conv_options[f"{c.title} (ID: {c.id})"] = c.id
-        
+        # Validate that conv_selectbox exists in conv_options
+        if st.session_state.conv_selectbox not in conv_options:
+            st.session_state.conv_selectbox = "New Conversation"
+
         selected_label = st.selectbox(
             "Select Conversation Session",
             list(conv_options.keys()),
-            key=f"conv_select_{st.session_state.conv_widget_counter}"
+            key="conv_selectbox"
         )
         selected_id = conv_options[selected_label]
 
@@ -193,7 +197,7 @@ if navigation == "💬 Chat":
         if st.button("➕ New Chat", use_container_width=True):
             st.session_state.current_chat_id = None
             st.session_state.chat_messages = []
-            st.session_state.conv_widget_counter += 1
+            st.session_state.conv_selectbox = "New Conversation"
             st.rerun()
 
     use_rag_toggle = st.checkbox("🔍 Enable RAG Vector Retrieval (FAISS)", value=True)
@@ -212,50 +216,43 @@ if navigation == "💬 Chat":
 
     # Chat Input
     if user_query := st.chat_input("Ask a question about your documents (e.g., 'What projects are in my resume?')..."):
-        st.chat_message("user").write(user_query)
         st.session_state.chat_messages.append({"role": "user", "content": user_query, "sources": []})
 
-        with st.spinner("Searching FAISS index and generating response..."):
-            db = get_db()
-            try:
-                if not st.session_state.current_chat_id:
-                    new_conv = MemoryService.create_conversation(db, title=user_query[:30])
-                    st.session_state.current_chat_id = new_conv.id
+        db = get_db()
+        try:
+            if not st.session_state.current_chat_id:
+                new_conv = MemoryService.create_conversation(db, title=user_query[:30])
+                st.session_state.current_chat_id = new_conv.id
+                st.session_state.conv_selectbox = f"{new_conv.title} (ID: {new_conv.id})"
 
-                conv_id = st.session_state.current_chat_id
-                MemoryService.add_message(db, conversation_id=conv_id, role="user", content=user_query)
+            conv_id = st.session_state.current_chat_id
+            MemoryService.add_message(db, conversation_id=conv_id, role="user", content=user_query)
 
+            with st.spinner("Searching FAISS index and generating response..."):
                 if use_rag_toggle:
                     answer, sources = st.session_state.rag_service.query_rag(db, question=user_query)
                 else:
                     answer = st.session_state.rag_service.llm_service.generate_completion(user_query)
                     sources = []
 
-                MemoryService.add_message(
-                    db,
-                    conversation_id=conv_id,
-                    role="assistant",
-                    content=answer,
-                    sources=sources
-                )
+            MemoryService.add_message(
+                db,
+                conversation_id=conv_id,
+                role="assistant",
+                content=answer,
+                sources=sources
+            )
 
-                st.chat_message("assistant").write(answer)
-                if sources:
-                    with st.expander("📚 View Document Sources"):
-                        for idx, src in enumerate(sources, 1):
-                            page_str = f" | Page {src['page_number']}" if src.get("page_number") else ""
-                            st.markdown(f"**Source {idx}:** `{src['document_name']}` (Chunk {src['chunk_id']}{page_str})")
-                            st.caption(src['content'])
-
-                st.session_state.chat_messages.append({
-                    "role": "assistant",
-                    "content": answer,
-                    "sources": sources
-                })
-            except Exception as e:
-                st.error(f"Execution Error: {str(e)}")
-            finally:
-                db.close()
+            st.session_state.chat_messages.append({
+                "role": "assistant",
+                "content": answer,
+                "sources": sources
+            })
+            st.rerun()
+        except Exception as e:
+            st.error(f"Execution Error: {str(e)}")
+        finally:
+            db.close()
 
 # ----------------------------------------------------
 # 2. 📁 DOCUMENTS & ANALYTICS TAB
